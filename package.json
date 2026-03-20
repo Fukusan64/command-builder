@@ -1,18 +1,18 @@
 {
-	"name": "playground",
-	"version": "0.1.0",
-	"type": "module",
-	"description": "",
-	"main": "src/main.ts",
-	"scripts": {
-		"check": "biome check --write src/ && tsc"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^2.1.4",
-		"@tsconfig/node-ts": "^23.6.2",
-		"@tsconfig/node24": "^24.0.3",
-		"@types/node": "^24.2.1",
-		"esbuild": "^0.27.0",
-		"typescript": "^5.4.5"
-	}
+  "name": "command-builder",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "",
+  "main": "src/main.ts",
+  "scripts": {
+    "check": "biome check --write src/ && tsc"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.4",
+    "@tsconfig/node-ts": "^23.6.2",
+    "@tsconfig/node24": "^24.0.3",
+    "@types/node": "^24.2.1",
+    "esbuild": "^0.27.0",
+    "typescript": "^5.4.5"
+  }
 }

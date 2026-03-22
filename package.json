@@ -11,7 +11,9 @@
       "import": "./dist/main.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "check": "biome check --write src/ && tsc --noEmit",
     "build": "esbuild src/main.ts --outdir=dist --format=esm --platform=node && tsc --emitDeclarationOnly"

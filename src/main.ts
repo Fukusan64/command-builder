@@ -9,9 +9,13 @@ type CommandBuilder = {
   // 実行（引数なしで呼ぶ）
   (): Promise<string>;
   // 引数追加
+  // grep('hoge')
+  // git('diff', '--name-only')
+  // npm(w`run build`)
   (...args: string[]): CommandBuilder;
   (args: string[]): CommandBuilder;
-  // `proxy.get()` で `shell.ls` みたいに任意のプロパティをコマンドとして扱う
+  // ls.sort
+  // ls['>'].fileName`
   [command: string]: CommandBuilder;
 };
 

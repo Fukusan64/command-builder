@@ -15,15 +15,14 @@
     "dist"
   ],
   "scripts": {
-    "check": "biome check --write src/ && tsc --noEmit",
-    "build": "esbuild src/main.ts --outdir=dist --format=esm --platform=node && tsc --emitDeclarationOnly"
+    "check": "biome check --write src/ test/ && tsc --noEmit",
+    "build": "tsc"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
     "@tsconfig/node-ts": "^23.6.2",
     "@tsconfig/node24": "^24.0.3",
     "@types/node": "^24.2.1",
-    "esbuild": "^0.27.0",
     "typescript": "^5.4.5"
   }
 }

@@ -93,5 +93,5 @@ export function w(
   } else {
     str = String.raw({ raw: arg1.raw }, ...rest);
   }
-  return str.split(' ');
+  return str.split(/ +/);
 }

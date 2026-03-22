@@ -4,7 +4,9 @@
     "@tsconfig/node-ts/tsconfig.json"
   ],
   "compilerOptions": {
-    "noEmit": true
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src/"]
 }

@@ -3,9 +3,18 @@
   "version": "0.1.0",
   "type": "module",
   "description": "",
-  "main": "src/main.ts",
+  "main": "dist/main.js",
+  "types": "dist/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/main.d.ts",
+      "import": "./dist/main.js"
+    }
+  },
+  "files": ["dist"],
   "scripts": {
-    "check": "biome check --write src/ && tsc"
+    "check": "biome check --write src/ && tsc --noEmit",
+    "build": "esbuild src/main.ts --outdir=dist --format=esm --platform=node && tsc --emitDeclarationOnly"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",

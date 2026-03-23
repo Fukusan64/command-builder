@@ -18,16 +18,16 @@ await $.grep('pattern', 'file.txt')();
 
 // パイプ（プロパティアクセスで自動接続）
 await $.ls.sort();            // ls | sort
-await $.ps.grep('node')();   // ps | grep 'node'
+await $.ps.grep('node')();   // ps | grep "node"
 
 // サブコマンド（関数呼び出しで引数として追加）
-await $.git('diff', '--name-only')();   // git 'diff' '--name-only'
+await $.git('diff', '--name-only')();   // git "diff" "--name-only"
 
 // w ヘルパーで複数引数を簡潔に渡す
-await $.npm(w`run build`)();   // npm 'run' 'build'
+await $.npm(w`run build`)();   // npm "run" "build"
 
 // リダイレクト
-await $.echo('hello')['>']['output.txt']();   // echo 'hello' > output.txt
+await $.echo('hello')['>']['output.txt']();   // echo "hello" > output.txt
 ```
 
 ## API
@@ -55,11 +55,11 @@ const $ = createShell(async (command) => {
 | 操作 | 構文 | 生成されるコマンド |
 |------|------|--------------------|
 | 実行 | `$.ls()` | `ls` |
-| 引数追加 | `$.grep('pattern')()` | `grep 'pattern'` |
-| 複数引数 | `$.git('diff', '--name-only')()` | `git 'diff' '--name-only'` |
-| 配列で引数 | `$.git(['diff', '--name-only'])()` | `git 'diff' '--name-only'` |
+| 引数追加 | `$.grep('pattern')()` | `grep "pattern"` |
+| 複数引数 | `$.git('diff', '--name-only')()` | `git "diff" "--name-only"` |
+| 配列で引数 | `$.git(['diff', '--name-only'])()` | `git "diff" "--name-only"` |
 | パイプ | `$.ls.sort()` | `ls \| sort` |
-| リダイレクト | `$.echo('hello')['>']['out.txt']()` | `echo 'hello' > out.txt` |
+| リダイレクト | `$.echo('hello')['>']['out.txt']()` | `echo "hello" > out.txt` |
 
 ### `w` ヘルパー
 

@@ -14,7 +14,7 @@ describe('createShell（コマンド文字列の組み立て）', () => {
     const $ = capture();
     assert.equal(
       await $.grep('pattern', 'file.txt')(),
-      "grep 'pattern' 'file.txt'",
+      'grep "pattern" "file.txt"',
     );
   });
 
@@ -22,7 +22,7 @@ describe('createShell（コマンド文字列の組み立て）', () => {
     const $ = capture();
     assert.equal(
       await $.git(['diff', '--name-only'])(),
-      "git 'diff' '--name-only'",
+      'git "diff" "--name-only"',
     );
   });
 
@@ -33,7 +33,7 @@ describe('createShell（コマンド文字列の組み立て）', () => {
 
   it('パイプと引数', async () => {
     const $ = capture();
-    assert.equal(await $.ps.grep('node')(), "ps | grep 'node'");
+    assert.equal(await $.ps.grep('node')(), 'ps | grep "node"');
   });
 
   it('複数段パイプ', async () => {
@@ -45,7 +45,7 @@ describe('createShell（コマンド文字列の組み立て）', () => {
     const $ = capture();
     assert.equal(
       await $.echo('hello')['>']['output.txt'](),
-      "echo 'hello' > output.txt",
+      'echo "hello" > output.txt',
     );
   });
 
@@ -54,9 +54,30 @@ describe('createShell（コマンド文字列の組み立て）', () => {
     assert.equal(await $.cat['<']['input.txt'](), 'cat < input.txt');
   });
 
-  it('引数内のシングルクォートはエスケープされる', async () => {
+  it('引数内のシングルクォートはそのまま渡せる', async () => {
     const $ = capture();
-    assert.equal(await $.echo("it's")(), "echo 'it\\'s'");
+    assert.equal(await $.echo("it's")(), `echo "it's"`);
+  });
+
+  it('引数内のダブルクォートはエスケープされる', async () => {
+    const $ = capture();
+    assert.equal(await $.echo('say "hello"')(), 'echo "say \\"hello\\""');
+  });
+
+  it('引数内のドル記号は展開可能な形で渡される', async () => {
+    const $ = capture();
+    assert.equal(await $.echo('$HOME')(), 'echo "$HOME"');
+  });
+
+  it('引数内の \\$ はそのまま渡される', async () => {
+    const $ = capture();
+    assert.equal(await $.echo('\\$HOME')(), 'echo "\\$HOME"');
+  });
+
+  it('引数内のバックスラッシュは二重化しない', async () => {
+    const $ = capture();
+    const path = String.raw`C:\Users\foo\bin`;
+    assert.equal(await $.echo(path)(), `echo "${path}"`);
   });
 });
 
@@ -76,7 +97,7 @@ describe('w ヘルパー', () => {
 
   it('createShell との組み合わせ', async () => {
     const $ = capture();
-    assert.equal(await $.npm(w`run build`)(), "npm 'run' 'build'");
+    assert.equal(await $.npm(w`run build`)(), 'npm "run" "build"');
   });
 
   it('split の実装（連続スペース）', () => {

@@ -3,7 +3,7 @@ import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
 
-const escapeQuotation = (arg: string) => arg.replace(/'/g, "\\'");
+const escapeDoubleQuotedArg = (arg: string) => arg.replace(/(["])/g, '\\$1');
 
 type CommandBuilder = {
   // 実行（引数なしで呼ぶ）
@@ -63,7 +63,7 @@ export const createShell = (
             args = argumentsList;
           }
           commands[commands.length - 1] +=
-            ` ${args.map((arg) => `'${escapeQuotation(arg)}'`).join(' ')}`;
+            ` ${args.map((arg) => `"${escapeDoubleQuotedArg(arg)}"`).join(' ')}`;
           return f(commands);
         }
       },

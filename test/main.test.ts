@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { createShell, w } from '../src/main.ts';
 
-const capture = () => createShell((cmd) => Promise.resolve(cmd));
+const capture = () =>
+  createShell((cmd, signal) => Promise.resolve(signal ? `${cmd}|signal` : cmd));
 
 describe('createShell（コマンド文字列の組み立て）', () => {
   it('単一コマンド', async () => {
@@ -109,5 +110,36 @@ describe('エッジケース', () => {
   it('Symbol キーは拒否される', () => {
     const $ = capture();
     assert.throws(() => Reflect.get($, Symbol('x')), /Symbol is not allowed/);
+  });
+});
+
+describe('AbortSignal', () => {
+  it('最終呼び出しで AbortSignal を渡すと executor に signal が渡る', async () => {
+    const $ = capture();
+    const controller = new AbortController();
+    assert.equal(await $.ls(controller.signal), 'ls|signal');
+  });
+
+  it('引数のあとに AbortSignal を渡すとコマンドと signal が揃う', async () => {
+    const $ = capture();
+    const controller = new AbortController();
+    assert.equal(
+      await $.grep('pattern', 'file.txt')(controller.signal),
+      'grep "pattern" "file.txt"|signal',
+    );
+  });
+
+  it('AbortSignal で子プロセスを中断できる', async () => {
+    const $ = createShell();
+    const controller = new AbortController();
+    const promise = $.sleep('30')(controller.signal);
+    queueMicrotask(() => controller.abort());
+    await assert.rejects(promise, (err: Error) => {
+      assert.ok(
+        err.name === 'AbortError' ||
+          (err as NodeJS.ErrnoException).code === 'ABORT_ERR',
+      );
+      return true;
+    });
   });
 });

@@ -28,6 +28,15 @@ await $.npm(w`run build`)();   // npm "run" "build"
 
 // リダイレクト
 await $.echo('hello')['>']['output.txt']();   // echo "hello" > output.txt
+
+// AbortSignal（最終呼び出しに渡すと中断可能）
+const controller = new AbortController();
+const promise = $.sleep('30')(controller.signal);
+controller.abort(); // 子プロセスを停止できるようにする
+await promise; // AbortError になる
+
+// AbortSignal を直接渡して実行
+await $.ls(controller.signal);
 ```
 
 ## API
@@ -43,18 +52,21 @@ const $ = createShell();
 // シェルを指定
 const $ = createShell('bash');
 
-// カスタム実行関数を渡す
-const $ = createShell(async (command) => {
-  // 任意の処理
+// カスタム実行関数を渡す（第2引数に AbortSignal が渡る場合がある）
+const $ = createShell(async (command, signal) => {
+  // 任意の処理（signal を子処理へ転送してもよい）
   return stdout;
 });
 ```
+
+デフォルトの `createShell()` / `createShell('sh' | 'bash' | …)` は、Node.js の [`child_process.exec`](https://nodejs.org/api/child_process.html#child_processexeccommand-options-callback) に `signal` を渡します。最終呼び出しで `AbortSignal` を1つだけ渡すと、その `signal` が使われます。
 
 ### コマンドの組み立て
 
 | 操作 | 構文 | 生成されるコマンド |
 |------|------|--------------------|
 | 実行 | `$.ls()` | `ls` |
+| 中断付き実行 | `$.ls(signal)` | `ls`（`signal` は executor に渡る） |
 | 引数追加 | `$.grep('pattern')()` | `grep "pattern"` |
 | 複数引数 | `$.git('diff', '--name-only')()` | `git "diff" "--name-only"` |
 | 配列で引数 | `$.git(['diff', '--name-only'])()` | `git "diff" "--name-only"` |

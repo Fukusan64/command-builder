@@ -5,9 +5,19 @@ const execAsync = promisify(exec);
 
 const escapeDoubleQuotedArg = (arg: string) => arg.replace(/(["])/g, '\\$1');
 
+const isAbortSignal = (v: unknown): v is AbortSignal =>
+  v instanceof AbortSignal;
+
+type ShellExecutor = (
+  commands: string,
+  signal?: AbortSignal,
+) => Promise<string>;
+
 type CommandBuilder = {
   // 実行（引数なしで呼ぶ）
   (): Promise<string>;
+  // AbortSignal で実行（中断可能）
+  (signal: AbortSignal): Promise<string>;
   // 引数追加
   // grep('hoge')
   // git('diff', '--name-only')
@@ -19,14 +29,12 @@ type CommandBuilder = {
   [command: string]: CommandBuilder;
 };
 
-export const createShell = (
-  shell: string | ((commands: string) => Promise<string>) = 'sh',
-) => {
-  let executor: (commands: string) => Promise<string>;
+export const createShell = (shell: string | ShellExecutor = 'sh') => {
+  let executor: ShellExecutor;
 
   if (typeof shell === 'string') {
-    executor = async (command: string) => {
-      const result = await execAsync(command, { shell });
+    executor = async (command: string, signal?: AbortSignal) => {
+      const result = await execAsync(command, { shell, signal });
       if (result.stderr) {
         throw new Error(result.stderr);
       }
@@ -36,42 +44,49 @@ export const createShell = (
     executor = shell;
   }
 
-  const f = (commands: string[] = []): CommandBuilder =>
-    new Proxy(() => commands, {
+  const run = (chainedCommands: string, signal?: AbortSignal) =>
+    executor(chainedCommands, signal);
+
+  const f = (commandList: string[] = []): CommandBuilder =>
+    new Proxy(() => commandList, {
       apply(target, _thisArg, argumentsList) {
-        if (argumentsList.length === 0) {
-          const commands = target();
-          let chainedCommands = commands[0];
-          for (let i = 1; i < commands.length; i++) {
+        const first = argumentsList[0];
+        const isFinalAbortCall =
+          argumentsList.length === 1 && isAbortSignal(first);
+
+        if (argumentsList.length === 0 || isFinalAbortCall) {
+          const segments = target();
+          let chainedCommands = segments[0];
+          for (let i = 1; i < segments.length; i++) {
             const isBeforeRedirect =
-              commands[i - 1].includes('>') || commands[i - 1].includes('<');
+              segments[i - 1].includes('>') || segments[i - 1].includes('<');
             const isRedirect =
-              commands[i].includes('>') || commands[i].includes('<');
+              segments[i].includes('>') || segments[i].includes('<');
             if (isBeforeRedirect || isRedirect) {
-              chainedCommands += ` ${commands[i]}`;
+              chainedCommands += ` ${segments[i]}`;
             } else {
-              chainedCommands += ` | ${commands[i]}`;
+              chainedCommands += ` | ${segments[i]}`;
             }
           }
-          return executor(chainedCommands);
-        } else {
-          const commands = [...target()];
-          let args: string[];
-          if (Array.isArray(argumentsList[0])) {
-            args = argumentsList[0];
-          } else {
-            args = argumentsList;
-          }
-          commands[commands.length - 1] +=
-            ` ${args.map((arg) => `"${escapeDoubleQuotedArg(arg)}"`).join(' ')}`;
-          return f(commands);
+          const signal = isFinalAbortCall ? (first as AbortSignal) : undefined;
+          return run(chainedCommands, signal);
         }
+
+        const next = [...target()];
+        let args: string[];
+        if (Array.isArray(argumentsList[0])) {
+          args = argumentsList[0];
+        } else {
+          args = argumentsList as string[];
+        }
+        next[next.length - 1] +=
+          ` ${args.map((arg) => `"${escapeDoubleQuotedArg(arg)}"`).join(' ')}`;
+        return f(next);
       },
 
       get(target, prop) {
         if (typeof prop === 'symbol') throw new Error('Symbol is not allowed');
-        const commands = [...target(), prop];
-        return f(commands);
+        return f([...target(), prop]);
       },
     }) as unknown as CommandBuilder;
 

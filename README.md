@@ -1,7 +1,7 @@
 # command-builder
 
 Proxy を活用したシェルコマンドビルダー。
-プロパティアクセスによるパイプ接続と関数呼び出しによる引数追加を組み合わせた API を提供する。
+プロパティアクセスによるパイプ接続と関数呼び出しによる引数追加を組み合わせた API を提供します。
 
 ## 使い方
 
@@ -35,8 +35,6 @@ const promise = $.sleep('30')(controller.signal);
 controller.abort(); // 子プロセスを停止できるようにする
 await promise; // AbortError になる
 
-// AbortSignal を直接渡して実行
-await $.ls(controller.signal);
 ```
 
 ## API
@@ -76,7 +74,7 @@ const $ = createShell(async (command, signal) => {
 ### `w` ヘルパー
 
 スペース区切りの文字列を引数の配列に変換。
-タグ付きテンプレートリテラルとしても、通常の関数としても使える。
+タグ付きテンプレートリテラルとしても、通常の関数としても使えます。
 
 ```typescript
 w`run build`        // ['run', 'build']
